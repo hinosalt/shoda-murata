@@ -746,5 +746,209 @@ document.addEventListener('keydown', e => {
 })();
 </script>
 
+<!-- ═══ PIXEL ART WALKERS ═══ -->
+<div id="walkers">
+  <canvas id="walkerCanvas"></canvas>
+</div>
+
+<style>
+  #walkers {
+    position: fixed;
+    bottom: 18px;
+    left: 0;
+    right: 0;
+    pointer-events: none;
+    z-index: 50;
+    height: 56px;
+  }
+  #walkerCanvas {
+    display: block;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+    height: 56px;
+  }
+</style>
+
+<script>
+/* ═══════════════════════════════════
+   PIXEL ART WALKING CHARACTERS
+   Scroll progress → right-to-left walk
+═══════════════════════════════════ */
+(function () {
+  const canvas = document.getElementById('walkerCanvas');
+  const ctx    = canvas.getContext('2d');
+
+  const SC = 4;   // pixel scale (1 art-pixel = 4 CSS px)
+  const CW = 8;   // art width
+  const CH = 14;  // art height
+
+  /* ── colour palette ── */
+  const _ = null;
+  const HA = '#2c1505'; // Masatoshi hair (dark brown)
+  const SK = '#f5c5a3'; // skin
+  const EY = '#3a2010'; // eyes / dark detail
+  const SH = '#4a90d9'; // shirt blue
+  const PA = '#2c3445'; // pants dark navy
+  const SO = '#1a1a1a'; // shoes black
+
+  const HF = '#1a0808'; // Hiyori hair (near-black)
+  const DR = '#c9506a'; // dress rosy pink
+  const DS = '#a33850'; // dress shadow
+
+  /* ── Masatoshi sprites (facing RIGHT; will be flipped to face LEFT) ── */
+  const masaA = [                               // frame A – right leg forward
+    [_,_,HA,HA,HA,_,_,_],
+    [_,HA,HA,HA,HA,HA,_,_],
+    [_,SK,SK,SK,SK,SK,SK,_],
+    [_,SK,EY,SK,SK,EY,SK,_],
+    [_,SK,SK,SK,SK,SK,SK,_],
+    [_,_,SH,SH,SH,SH,_,_],
+    [SK,SH,SH,SH,SH,SH,SH,SK],
+    [_,_,SH,SH,SH,SH,_,_],
+    [_,_,PA,PA,PA,PA,_,_],
+    [_,PA,PA,_,_,PA,PA,_],
+    [_,_,_,_,_,PA,PA,_],
+    [_,_,_,_,_,SO,SO,_],
+    [_,PA,PA,_,_,_,_,_],
+    [_,SO,SO,_,_,_,_,_],
+  ];
+  const masaB = [                               // frame B – left leg forward
+    [_,_,HA,HA,HA,_,_,_],
+    [_,HA,HA,HA,HA,HA,_,_],
+    [_,SK,SK,SK,SK,SK,SK,_],
+    [_,SK,EY,SK,SK,EY,SK,_],
+    [_,SK,SK,SK,SK,SK,SK,_],
+    [_,_,SH,SH,SH,SH,_,_],
+    [SK,SH,SH,SH,SH,SH,SH,SK],
+    [_,_,SH,SH,SH,SH,_,_],
+    [_,_,PA,PA,PA,PA,_,_],
+    [_,PA,PA,_,_,PA,PA,_],
+    [_,PA,PA,_,_,_,_,_],
+    [_,SO,SO,_,_,_,_,_],
+    [_,_,_,_,_,PA,PA,_],
+    [_,_,_,_,_,SO,SO,_],
+  ];
+
+  /* ── Hiyori sprites (facing RIGHT; will be flipped) ── */
+  const hiyA = [                                // frame A
+    [_,HF,HF,HF,HF,HF,_,_],
+    [HF,HF,HF,HF,HF,HF,HF,_],
+    [_,SK,SK,SK,SK,SK,SK,HF],
+    [_,SK,EY,SK,SK,EY,SK,_],
+    [_,SK,SK,SK,SK,SK,SK,_],
+    [_,_,DR,DR,DR,DR,_,_],
+    [_,DR,DR,DR,DR,DR,DR,_],
+    [_,DR,DR,DR,DR,DR,DR,_],
+    [DR,DR,DR,DR,DR,DR,DR,DR],
+    [_,DS,DR,DR,DR,DR,DS,_],
+    [_,_,SK,_,_,SK,_,_],
+    [_,_,SK,_,_,_,_,_],
+    [_,_,_,_,_,SK,_,_],
+    [_,_,_,_,_,_,_,_],
+  ];
+  const hiyB = [                                // frame B
+    [_,HF,HF,HF,HF,HF,_,_],
+    [HF,HF,HF,HF,HF,HF,HF,_],
+    [_,SK,SK,SK,SK,SK,SK,HF],
+    [_,SK,EY,SK,SK,EY,SK,_],
+    [_,SK,SK,SK,SK,SK,SK,_],
+    [_,_,DR,DR,DR,DR,_,_],
+    [_,DR,DR,DR,DR,DR,DR,_],
+    [_,DR,DR,DR,DR,DR,DR,_],
+    [DR,DR,DR,DR,DR,DR,DR,DR],
+    [_,DS,DR,DR,DR,DR,DS,_],
+    [_,_,SK,_,_,SK,_,_],
+    [_,_,_,_,_,SK,_,_],
+    [_,_,SK,_,_,_,_,_],
+    [_,_,_,_,_,_,_,_],
+  ];
+
+  /* ── draw one sprite, optionally flipped horizontally ── */
+  function drawSprite(pixels, x, y) {
+    // flip so characters face LEFT (direction of travel)
+    ctx.save();
+    ctx.translate(x + CW * SC, 0);
+    ctx.scale(-1, 1);
+    for (let r = 0; r < pixels.length; r++) {
+      for (let c = 0; c < pixels[r].length; c++) {
+        const col = pixels[r][c];
+        if (col) {
+          ctx.fillStyle = col;
+          ctx.fillRect(c * SC, y + r * SC, SC, SC);
+        }
+      }
+    }
+    ctx.restore();
+  }
+
+  /* ── state ── */
+  let frame      = 0;
+  let lastSwitch = 0;
+  const FRAME_MS = 280;           // walking cadence
+
+  let currentX = null;            // null = not initialised yet
+  let targetX;
+
+  function calcTargetX() {
+    const scrollH = document.documentElement.scrollHeight - window.innerHeight;
+    const p = scrollH > 0 ? Math.min(1, window.scrollY / scrollH) : 0;
+    const charTotalW = (CW * SC) * 2 + 10; // both chars + gap
+    // start fully off-screen right; end fully off-screen left
+    return window.innerWidth + charTotalW / 2 - (window.innerWidth + charTotalW) * p;
+  }
+
+  /* ── resize canvas to full viewport width ── */
+  function resizeCanvas() {
+    canvas.width  = window.innerWidth;
+    canvas.style.width = window.innerWidth + 'px';
+  }
+
+  /* ── RAF loop ── */
+  function loop(ts) {
+    // init currentX on first frame
+    if (currentX === null) currentX = calcTargetX();
+
+    targetX = calcTargetX();
+
+    // ease toward target
+    currentX += (targetX - currentX) * 0.1;
+
+    // advance walk frame on timer
+    if (ts - lastSwitch > FRAME_MS) {
+      frame = 1 - frame;
+      lastSwitch = ts;
+    }
+
+    resizeCanvas();
+    ctx.clearRect(0, 0, canvas.width, CH * SC);
+
+    const charW = CW * SC;
+    const gap   = 8;
+    // Masatoshi leads slightly ahead (to the left)
+    const masaX = currentX;
+    const hiyX  = currentX + charW + gap;
+
+    const masaFrame = frame === 0 ? masaA : masaB;
+    const hiyFrame  = frame === 0 ? hiyA  : hiyB;
+
+    // draw only if on-screen
+    if (masaX < canvas.width + charW && masaX > -charW * 2) {
+      drawSprite(masaFrame, masaX, 0);
+    }
+    if (hiyX < canvas.width + charW && hiyX > -charW * 2) {
+      drawSprite(hiyFrame, hiyX, 0);
+    }
+
+    requestAnimationFrame(loop);
+  }
+
+  window.addEventListener('scroll',  () => { targetX = calcTargetX(); }, { passive: true });
+  window.addEventListener('resize',  resizeCanvas);
+
+  resizeCanvas();
+  requestAnimationFrame(loop);
+})();
+</script>
+
 </body>
 </html>
