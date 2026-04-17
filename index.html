@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Masatoshi &amp; Hiyori — Wedding Celebration</title>
+  <style>
+    /* ── Reset ── */
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+
+    /* ── Body ── */
+    body {
+      font-family: 'Hiragino Mincho ProN', 'Yu Mincho', 'Noto Serif JP', Georgia, serif;
+      background: #f5e8ec;
+      color: #333;
+      overflow-x: hidden;
+    }
+
+    /* ══════════════════════════════
+       SAKURA PETALS
+    ══════════════════════════════ */
+    #sakura {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 100;
+      overflow: hidden;
+    }
+
+    .petal {
+      position: absolute;
+      top: -60px;
+      width: 18px;
+      height: 18px;
+      opacity: 0;
+      animation: petalFall linear infinite;
+    }
+
+    /* SVG petal shape */
+    .petal svg {
+      width: 100%;
+      height: 100%;
+    }
+
+    @keyframes petalFall {
+      0%   { opacity: 0;   transform: translateX(0)    rotate(0deg)   scale(0.8); }
+      8%   { opacity: 0.75; }
+      85%  { opacity: 0.55; }
+      100% { opacity: 0;   transform: translateX(90px) rotate(540deg) scale(1.1);
+             top: 108vh; }
+    }
+
+    /* ══════════════════════════════
+       PAGE WRAPPER
+    ══════════════════════════════ */
+    .page {
+      max-width: 480px;
+      margin: 0 auto;
+      min-height: 100vh;
+      background: linear-gradient(
+        180deg,
+        #fffafb 0%,
+        #fff5f7 15%,
+        #fff0f4 35%,
+        #fff5f7 55%,
+        #fffafb 75%,
+        #fff0f4 90%,
+        #fffafb 100%
+      );
+      position: relative;
+    }
+
+    @media (min-width: 500px) {
+      .page { box-shadow: 0 0 80px rgba(180, 120, 130, 0.18); }
+    }
+
+    /* ══════════════════════════════
+       FADE-IN  (Intersection Observer)
+    ══════════════════════════════ */
+    .reveal {
+      opacity: 0;
+      transform: translateY(36px);
+      transition: opacity 0.85s cubic-bezier(.25,.8,.25,1),
+                  transform 0.85s cubic-bezier(.25,.8,.25,1);
+    }
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* ══════════════════════════════
+       COMMON
+    ══════════════════════════════ */
+    section {
+      padding: 52px 28px;
+      text-align: center;
+      position: relative;
+    }
+    section + section {
+      border-top: 1px solid rgba(201, 155, 160, 0.18);
+    }
+
+    .label {
+      font-family: 'Helvetica Neue', 'Hiragino Sans', Arial, sans-serif;
+      font-size: 10px;
+      letter-spacing: 5px;
+      color: #C9939A;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+
+    .divider {
+      width: 54px;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, #C9939A 40%, #C9939A 60%, transparent);
+      margin: 18px auto;
+    }
+
+    /* ══════════════════════════════
+       1. HERO
+    ══════════════════════════════ */
+    .hero {
+      padding: 80px 28px 64px;
+    }
+
+    .hero-eyebrow {
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+      font-size: 10px;
+      letter-spacing: 7px;
+      color: #C9939A;
+      margin-bottom: 22px;
+    }
+
+    .hero-names {
+      font-size: clamp(30px, 8vw, 38px);
+      font-weight: 300;
+      color: #2c2020;
+      letter-spacing: 4px;
+      line-height: 1.25;
+    }
+
+    .hero-amp {
+      display: block;
+      font-size: 22px;
+      color: #C9939A;
+      margin: 10px 0;
+    }
+
+    .hero-date {
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+      font-size: 13px;
+      color: #b8a0a3;
+      letter-spacing: 5px;
+      margin-top: 16px;
+    }
+
+    .hero-tagline {
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+      font-size: 10px;
+      letter-spacing: 8px;
+      color: #d4b0b5;
+      margin-top: 8px;
+    }
+
+    /* ══════════════════════════════
+       2. COUNTDOWN
+    ══════════════════════════════ */
+    .countdown-grid {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      flex-wrap: wrap;
+      margin-top: 22px;
+    }
+
+    .cd-item { text-align: center; }
+
+    .cd-num {
+      font-size: clamp(36px, 10vw, 46px);
+      font-weight: 200;
+      color: #2c2020;
+      line-height: 1;
+      min-width: 54px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .cd-unit {
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+      font-size: 9px;
+      letter-spacing: 3px;
+      color: #C9939A;
+      margin-top: 6px;
+    }
+
+    .cd-colon {
+      font-size: 36px;
+      font-weight: 200;
+      color: #d4b0b5;
+      line-height: 1;
+      align-self: flex-start;
+      padding-top: 6px;
+    }
+
+    #countdown-done {
+      display: none;
+      font-size: 20px;
+      font-weight: 300;
+      color: #C9939A;
+      letter-spacing: 3px;
+      margin-top: 18px;
+      line-height: 1.6;
+    }
+
+    /* ══════════════════════════════
+       3. GALLERY
+    ══════════════════════════════ */
+    .photo-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 5px;
+      margin-top: 22px;
+    }
+
+    .photo-cell {
+      aspect-ratio: 1;
+      overflow: hidden;
+      border-radius: 5px;
+      cursor: zoom-in;
+      position: relative;
+      background: #f0dde0;
+    }
+
+    .photo-cell img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.45s ease;
+      display: block;
+    }
+
+    .photo-cell:hover img { transform: scale(1.09); }
+
+    .photo-cell::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: rgba(180, 110, 120, 0);
+      transition: background 0.3s;
+    }
+    .photo-cell:hover::after { background: rgba(180, 110, 120, 0.12); }
+
+    /* ── Modal ── */
+    #modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 8, 10, 0.88);
+      z-index: 9999;
+      justify-content: center;
+      align-items: center;
+      cursor: zoom-out;
+    }
+    #modal.open { display: flex; }
+
+    #modal-img {
+      max-width: 92vw;
+      max-height: 88vh;
+      object-fit: contain;
+      border-radius: 5px;
+      box-shadow: 0 24px 64px rgba(0,0,0,0.55);
+      cursor: default;
+      animation: zoomIn .28s cubic-bezier(.25,.8,.25,1);
+    }
+
+    @keyframes zoomIn {
+      from { opacity: 0; transform: scale(.88); }
+      to   { opacity: 1; transform: scale(1); }
+    }
+
+    #modal-close {
+      position: fixed;
+      top: 18px; right: 22px;
+      font-size: 32px;
+      color: rgba(255,255,255,.75);
+      cursor: pointer;
+      font-family: sans-serif;
+      line-height: 1;
+      transition: color .2s;
+    }
+    #modal-close:hover { color: #fff; }
+
+    /* ══════════════════════════════
+       4. TIMELINE
+    ══════════════════════════════ */
+    .timeline-section {
+      text-align: left;
+      padding: 52px 28px;
+    }
+    .timeline-section .label { text-align: center; }
+    .timeline-section .divider { text-align: center; }
+
+    .timeline {
+      position: relative;
+      margin-top: 28px;
+      padding-left: 38px;
+    }
+
+    .timeline::before {
+      content: '';
+      position: absolute;
+      left: 10px;
+      top: 10px;
+      bottom: 16px;
+      width: 1px;
+      background: linear-gradient(180deg, #C9939A 0%, rgba(201,147,154,.1) 100%);
+    }
+
+    .tl-item {
+      position: relative;
+      margin-bottom: 38px;
+    }
+
+    .tl-item::before {
+      content: '';
+      position: absolute;
+      left: -32px;
+      top: 6px;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #fffafb;
+      border: 2px solid #C9939A;
+      box-shadow: 0 0 0 4px rgba(201,147,154,.15);
+    }
+
+    .tl-item.highlight::before {
+      background: #C9939A;
+      border-color: #C9939A;
+      box-shadow: 0 0 0 6px rgba(201,147,154,.2);
+      width: 12px;
+      height: 12px;
+      left: -33px;
+      top: 5px;
+    }
+
+    .tl-year {
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+      font-size: 10px;
+      letter-spacing: 4px;
+      color: #C9939A;
+      font-weight: 700;
+      margin-bottom: 5px;
+    }
+
+    .tl-title {
+      font-size: 17px;
+      font-weight: 400;
+      color: #2c2020;
+      margin-bottom: 5px;
+    }
+
+    .tl-desc {
+      font-family: 'Helvetica Neue', 'Hiragino Sans', Arial, sans-serif;
+      font-size: 12px;
+      color: #9a8080;
+      line-height: 1.8;
+      margin-bottom: 12px;
+    }
+
+    .tl-photo {
+      width: 100%;
+      height: 150px;
+      border-radius: 7px;
+      overflow: hidden;
+      box-shadow: 0 4px 18px rgba(160,90,100,.1);
+    }
+    .tl-photo img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    /* ══════════════════════════════
+       5. MESSAGE
+    ══════════════════════════════ */
+    .message-card {
+      background: rgba(255, 255, 255, 0.68);
+      border-radius: 14px;
+      padding: 34px 26px;
+      margin-top: 22px;
+      box-shadow:
+        0 6px 28px rgba(180, 120, 130, 0.1),
+        0 1px 3px rgba(180, 120, 130, 0.06);
+      backdrop-filter: blur(6px);
+    }
+
+    .msg-text {
+      font-size: 15px;
+      font-weight: 300;
+      color: #4a3535;
+      line-height: 2.5;
+    }
+
+    .msg-from {
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+      font-size: 11px;
+      color: #C9939A;
+      letter-spacing: 3px;
+      text-align: right;
+      margin-top: 24px;
+    }
+
+    /* ══════════════════════════════
+       6. MOVIE
+    ══════════════════════════════ */
+    .video-wrap {
+      margin-top: 22px;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 8px 28px rgba(160, 90, 100, 0.12);
+      background: #1a0a0e;
+      position: relative;
+    }
+
+    .video-wrap video {
+      width: 100%;
+      display: block;
+      max-height: 340px;
+      object-fit: cover;
+    }
+
+    .video-caption {
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+      font-size: 11px;
+      letter-spacing: 3px;
+      color: #c4adb0;
+      margin-top: 14px;
+    }
+
+    /* ══════════════════════════════
+       FOOTER
+    ══════════════════════════════ */
+    footer {
+      text-align: center;
+      padding: 36px 28px 64px;
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+      font-size: 11px;
+      letter-spacing: 5px;
+      color: #d4b0b5;
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══ SAKURA CONTAINER ═══ -->
+<div id="sakura"></div>
+
+<!-- ═══ MODAL ═══ -->
+<div id="modal" onclick="closeModal()">
+  <span id="modal-close" onclick="closeModal()">×</span>
+  <img id="modal-img" src="" alt="思い出" onclick="event.stopPropagation()">
+</div>
+
+<div class="page">
+
+  <!-- ── 1. HERO ── -->
+  <section class="hero reveal">
+    <div class="hero-eyebrow">WEDDING CELEBRATION</div>
+    <div class="divider"></div>
+    <div class="hero-names">Masatoshi</div>
+    <span class="hero-amp">&amp;</span>
+    <div class="hero-names">Hiyori</div>
+    <div class="divider"></div>
+    <div class="hero-date">2026 · 04 · 29</div>
+    <div class="hero-tagline">HAPPILY MARRIED</div>
+  </section>
+
+  <!-- ── 2. COUNTDOWN ── -->
+  <section class="reveal">
+    <div class="label">Countdown</div>
+    <div id="countdown-grid" class="countdown-grid">
+      <div class="cd-item">
+        <div class="cd-num" id="cd-d">--</div>
+        <div class="cd-unit">DAYS</div>
+      </div>
+      <div class="cd-colon" aria-hidden="true">:</div>
+      <div class="cd-item">
+        <div class="cd-num" id="cd-h">--</div>
+        <div class="cd-unit">HOURS</div>
+      </div>
+      <div class="cd-colon" aria-hidden="true">:</div>
+      <div class="cd-item">
+        <div class="cd-num" id="cd-m">--</div>
+        <div class="cd-unit">MIN</div>
+      </div>
+      <div class="cd-colon" aria-hidden="true">:</div>
+      <div class="cd-item">
+        <div class="cd-num" id="cd-s">--</div>
+        <div class="cd-unit">SEC</div>
+      </div>
+    </div>
+    <div id="countdown-done">
+      入籍おめでとう！🎉<br>
+      <span style="font-size:15px;letter-spacing:2px;">Masatoshi &amp; Hiyori</span>
+    </div>
+  </section>
+
+  <!-- ── 3. GALLERY ── -->
+  <section class="reveal">
+    <div class="label">Memories</div>
+    <div class="divider"></div>
+    <div class="photo-grid">
+      <div class="photo-cell" onclick="openModal('1414229839686.jpg')">
+        <img src="1414229839686.jpg" alt="思い出" loading="lazy">
+      </div>
+      <div class="photo-cell" onclick="openModal('1462019315989.jpg')">
+        <img src="1462019315989.jpg" alt="思い出" loading="lazy">
+      </div>
+      <div class="photo-cell" onclick="openModal('DSC07170.jpeg')">
+        <img src="DSC07170.jpeg" alt="思い出" loading="lazy">
+      </div>
+      <div class="photo-cell" onclick="openModal('DSC09326.jpg')">
+        <img src="DSC09326.jpg" alt="思い出" loading="lazy">
+      </div>
+      <div class="photo-cell" onclick="openModal('1687542744524.jpg')">
+        <img src="1687542744524.jpg" alt="思い出" loading="lazy">
+      </div>
+      <div class="photo-cell" onclick="openModal('1691240536081.jpg')">
+        <img src="1691240536081.jpg" alt="思い出" loading="lazy">
+      </div>
+      <div class="photo-cell" onclick="openModal('line_246888613681597.jpg')">
+        <img src="line_246888613681597.jpg" alt="思い出" loading="lazy">
+      </div>
+      <div class="photo-cell" onclick="openModal('IMG_20191021_230634_1.jpg')">
+        <img src="IMG_20191021_230634_1.jpg" alt="思い出" loading="lazy">
+      </div>
+      <div class="photo-cell" onclick="openModal('IMG_9411.JPG')">
+        <img src="IMG_9411.JPG" alt="思い出" loading="lazy">
+      </div>
+    </div>
+  </section>
+
+  <!-- ── 4. TIMELINE ── -->
+  <section class="timeline-section reveal">
+    <div class="label">Our Story</div>
+    <div class="divider"></div>
+    <div class="timeline">
+
+      <div class="tl-item">
+        <div class="tl-year">2016</div>
+        <div class="tl-title">出会いの頃</div>
+        <div class="tl-desc">学生時代、ふたりの縁が始まった。<br>あの笑顔は、ずっと変わらない。</div>
+        <div class="tl-photo">
+          <img src="1462019315989.jpg" alt="出会い">
+        </div>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-year">2019</div>
+        <div class="tl-title">桜の下で</div>
+        <div class="tl-desc">春の公園での花見。<br>桜が、ふたりをそっと包んでいた。</div>
+        <div class="tl-photo">
+          <img src="line_246888613681597.jpg" alt="お花見">
+        </div>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-year">2023</div>
+        <div class="tl-title">交際スタート</div>
+        <div class="tl-desc">7年間の友達期間を経て、<br>ふたりはついに恋人になった。</div>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-year">2025</div>
+        <div class="tl-title">プロポーズ</div>
+        <div class="tl-desc">指輪が輝いた、あの瞬間。<br>ふたりの未来が、ここから始まった。</div>
+        <div class="tl-photo">
+          <img src="IMG_9411.JPG" alt="プロポーズ">
+        </div>
+      </div>
+
+      <div class="tl-item highlight">
+        <div class="tl-year">2026 · 04 · 29</div>
+        <div class="tl-title">入籍</div>
+        <div class="tl-desc">ふたりは、正式に夫婦となる。<br>新しい章の始まり。</div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ── 5. MESSAGE ── -->
+  <section class="reveal">
+    <div class="label">Message</div>
+    <div class="divider"></div>
+    <div class="message-card">
+      <div class="msg-text">
+        まさとし、ひより<br>
+        入籍おめでとう！<br>
+        <br>
+        ずっとそばで見てきたから、<br>
+        ふたりがここまで来たことが<br>
+        本当に嬉しくて、誇らしい。<br>
+        <br>
+        これからも笑顔あふれる毎日を<br>
+        ふたりで積み重ねていってね。<br>
+        <br>
+        末永くお幸せに。
+      </div>
+      <div class="msg-from">— With Love ♡</div>
+    </div>
+  </section>
+
+  <!-- ── 6. MOVIE ── -->
+  <section class="reveal">
+    <div class="label">Movie</div>
+    <div class="divider"></div>
+    <div class="video-wrap">
+      <video controls preload="metadata" playsinline>
+        <source src="movie1.mov" type="video/quicktime">
+        <source src="movie1.mov" type="video/mp4">
+        <source src="1667578241885.mp4" type="video/mp4">
+        お使いのブラウザは動画の再生に対応していません。
+      </video>
+    </div>
+    <div class="video-caption">思い出のムービー</div>
+  </section>
+
+  <!-- ── FOOTER ── -->
+  <footer>WITH LOVE &nbsp;♡</footer>
+
+</div><!-- /.page -->
+
+<script>
+/* ════════════════════════
+   SAKURA PETALS
+════════════════════════ */
+(function () {
+  const host = document.getElementById('sakura');
+  const COUNT = 14;
+
+  // Pink petal SVG (simplified 5-petal flower silhouette)
+  const PETAL_SVG = `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+    <g fill="rgba(220,150,160,0.75)">
+      <ellipse cx="12" cy="5"  rx="3.5" ry="5.5" transform="rotate(0,12,12)"/>
+      <ellipse cx="12" cy="5"  rx="3.5" ry="5.5" transform="rotate(72,12,12)"/>
+      <ellipse cx="12" cy="5"  rx="3.5" ry="5.5" transform="rotate(144,12,12)"/>
+      <ellipse cx="12" cy="5"  rx="3.5" ry="5.5" transform="rotate(216,12,12)"/>
+      <ellipse cx="12" cy="5"  rx="3.5" ry="5.5" transform="rotate(288,12,12)"/>
+    </g>
+    <circle cx="12" cy="12" r="2.5" fill="rgba(255,210,210,0.9)"/>
+  </svg>`;
+
+  for (let i = 0; i < COUNT; i++) {
+    const el = document.createElement('div');
+    el.className = 'petal';
+    el.innerHTML = PETAL_SVG;
+
+    const size = 10 + Math.random() * 14;
+    el.style.width  = size + 'px';
+    el.style.height = size + 'px';
+    el.style.left   = (Math.random() * 100) + '%';
+
+    const dur   = 8 + Math.random() * 9;
+    const delay = -(Math.random() * dur);
+    el.style.animation = `petalFall ${dur}s ${delay}s linear infinite`;
+
+    host.appendChild(el);
+  }
+})();
+
+/* ════════════════════════
+   COUNTDOWN
+════════════════════════ */
+(function () {
+  const target = new Date('2026-04-29T00:00:00+09:00');
+
+  const elD = document.getElementById('cd-d');
+  const elH = document.getElementById('cd-h');
+  const elM = document.getElementById('cd-m');
+  const elS = document.getElementById('cd-s');
+  const grid = document.getElementById('countdown-grid');
+  const done = document.getElementById('countdown-done');
+
+  function pad(n) { return String(n).padStart(2, '0'); }
+
+  function tick() {
+    const diff = target - Date.now();
+    if (diff <= 0) {
+      grid.style.display = 'none';
+      done.style.display = 'block';
+      return;
+    }
+    const s = Math.floor(diff / 1000);
+    elD.textContent = pad(Math.floor(s / 86400));
+    elH.textContent = pad(Math.floor(s % 86400 / 3600));
+    elM.textContent = pad(Math.floor(s % 3600  / 60));
+    elS.textContent = pad(s % 60);
+  }
+
+  tick();
+  setInterval(tick, 1000);
+})();
+
+/* ════════════════════════
+   MODAL
+════════════════════════ */
+const modal    = document.getElementById('modal');
+const modalImg = document.getElementById('modal-img');
+
+function openModal(src) {
+  modalImg.src = src;
+  modal.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeModal() {
+  modal.classList.remove('open');
+  document.body.style.overflow = '';
+  // clear src after transition so there's no flash
+  setTimeout(() => { modalImg.src = ''; }, 300);
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeModal();
+});
+
+/* ════════════════════════
+   INTERSECTION OBSERVER (reveal)
+════════════════════════ */
+(function () {
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.classList.add('visible');
+        io.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.1 });
+
+  // Hero is always visible on load
+  const hero = document.querySelector('.hero');
+  if (hero) hero.classList.add('visible');
+
+  document.querySelectorAll('.reveal:not(.hero)').forEach(el => io.observe(el));
+})();
+</script>
+
+</body>
+</html>
