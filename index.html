@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Masatoshi &amp; Hiyori — Wedding Celebration</title>
+  <title>Masatoshi &amp; Hiyori — 入籍おめでとう</title>
   <style>
     /* ── Reset ── */
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
@@ -466,14 +466,14 @@
 
   <!-- ── 1. HERO ── -->
   <section class="hero reveal">
-    <div class="hero-eyebrow">WEDDING CELEBRATION</div>
+    <div class="hero-eyebrow">入籍 CELEBRATION</div>
     <div class="divider"></div>
     <div class="hero-names">Masatoshi</div>
     <span class="hero-amp">&amp;</span>
     <div class="hero-names">Hiyori</div>
     <div class="divider"></div>
     <div class="hero-date">2026 · 04 · 29</div>
-    <div class="hero-tagline">HAPPILY MARRIED</div>
+    <div class="hero-tagline">CONGRATULATIONS</div>
   </section>
 
   <!-- ── 2. COUNTDOWN ── -->
@@ -892,14 +892,16 @@ document.addEventListener('keydown', e => {
   function calcTargetX() {
     const scrollH = document.documentElement.scrollHeight - window.innerHeight;
     const p = scrollH > 0 ? Math.min(1, window.scrollY / scrollH) : 0;
-    const charTotalW = (CW * SC) * 2 + 10; // both chars + gap
-    // start fully off-screen right; end fully off-screen left
-    return window.innerWidth + charTotalW / 2 - (window.innerWidth + charTotalW) * p;
+    const charW    = CW * SC;          // 32px per character
+    const startX   =  window.innerWidth;          // off-screen right
+    const endX     = -(charW * 3 + 20);           // off-screen left (both chars fully gone)
+    return startX + (endX - startX) * p;
   }
 
   /* ── resize canvas to full viewport width ── */
   function resizeCanvas() {
     canvas.width  = window.innerWidth;
+    canvas.height = CH * SC;  // 14 × 4 = 56px — must match CSS height
     canvas.style.width = window.innerWidth + 'px';
   }
 
